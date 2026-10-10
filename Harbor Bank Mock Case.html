@@ -1,0 +1,992 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Harbor Bank Mock Case</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@75..100,500..800&family=IBM+Plex+Mono:wght@400;500;600&family=Source+Sans+3:ital,wght@0,400;0,600;0,700;1,400&display=swap">
+<style>
+/* Layout: one reading column (max 820px) under a sticky step rail. Every step runs the same loop:
+   interviewer prompt -> your move -> reveal a strong answer. Exhibits sit inside the column like workpapers. */
+:root{
+  --bg:#f2f5f6; --surface:#ffffff; --surface-2:#e8eef0; --fg:#13202a; --fg-2:#44525d; --muted:#6c7a84; --line:#d4dce0;
+  --accent:#0d6b61; --accent-ink:#0a5a51; --accent-soft:#dbeeea; --on-accent:#ffffff;
+  --s1:#2a78d6; --s2:#eb6834; --grid:#e2e8ea; --axis:#b6c1c7;
+  --good:#0ca30c; --good-ink:#006300; --crit:#d03b3b; --crit-ink:#ad2828;
+  --h1:#e6f0fc; --h2:#b7d3f6; --h3:#6da7ec; --h4:#2a78d6; --h5:#104281;
+  --dot:#eb6834; --dot-ink:#111111; --tip-bg:#13202a; --tip-fg:#ffffff;
+  --display:"Archivo","Arial Narrow",system-ui,sans-serif;
+  --body:"Source Sans 3",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,"SFMono-Regular",Menlo,monospace;
+  --r:10px;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#0d1215; --surface:#151c20; --surface-2:#1b252a; --fg:#e5ecef; --fg-2:#a8b4bb; --muted:#7c8992; --line:#29343a;
+    --accent:#4cc2b1; --accent-ink:#72d4c6; --accent-soft:#11302c; --on-accent:#06201c;
+    --s1:#3987e5; --s2:#d95926; --grid:#222c32; --axis:#3a464d;
+    --good:#0ca30c; --good-ink:#3dc43d; --crit:#d03b3b; --crit-ink:#ff8484;
+    --h1:#1a2531; --h2:#1c3c63; --h3:#22599b; --h4:#3987e5; --h5:#86b6ef;
+    --dot:#f07a45; --dot-ink:#111111; --tip-bg:#e5ecef; --tip-fg:#0d1215;
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0d1215; --surface:#151c20; --surface-2:#1b252a; --fg:#e5ecef; --fg-2:#a8b4bb; --muted:#7c8992; --line:#29343a;
+  --accent:#4cc2b1; --accent-ink:#72d4c6; --accent-soft:#11302c; --on-accent:#06201c;
+  --s1:#3987e5; --s2:#d95926; --grid:#222c32; --axis:#3a464d;
+  --good:#0ca30c; --good-ink:#3dc43d; --crit:#d03b3b; --crit-ink:#ff8484;
+  --h1:#1a2531; --h2:#1c3c63; --h3:#22599b; --h4:#3987e5; --h5:#86b6ef;
+  --dot:#f07a45; --dot-ink:#111111; --tip-bg:#e5ecef; --tip-fg:#0d1215;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font:17px/1.6 var(--body);-webkit-font-smoothing:antialiased}
+.wrap{max-width:820px;margin:0 auto;padding-inline:20px}
+h1,h2,h3{font-family:var(--display);font-stretch:86%;text-wrap:balance;margin:0;letter-spacing:-.01em}
+p{margin:0 0 .8em}
+a{color:var(--accent-ink)}
+b,strong{font-weight:700}
+.eyebrow,.lbl,.who{font:500 11px/1.4 var(--mono);letter-spacing:.09em;text-transform:uppercase}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:4px}
+.tnum{font-variant-numeric:tabular-nums}
+
+/* rail */
+.rail{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;background:var(--bg);border-bottom:1px solid var(--line)}
+.rail-in{max-width:820px;margin:0 auto;padding:8px 20px;display:flex;gap:10px;align-items:center}
+.chips{display:flex;gap:4px;overflow-x:auto;flex:1;min-width:0;scrollbar-width:none;padding-block:2px}
+.chips::-webkit-scrollbar{display:none}
+.chips a{font:500 12px var(--mono);padding:5px 9px;border-radius:999px;color:var(--fg-2);white-space:nowrap;text-decoration:none}
+.chips a:hover{background:var(--surface-2)}
+.chips a.on{background:var(--fg);color:var(--bg)}
+.speed{display:flex;align-items:center;gap:6px;font:500 11px var(--mono);color:var(--muted);flex:none}
+.speed select{font:500 12px var(--mono);background:var(--surface);color:var(--fg);border:1px solid var(--line);border-radius:6px;padding:3px 4px}
+
+/* hero */
+.hero{padding-block:56px 40px}
+.hero .eyebrow{color:var(--accent-ink);margin-bottom:14px}
+.hero h1{font-size:clamp(40px,8vw,64px);line-height:1;font-weight:800;font-stretch:80%}
+.lede{font-size:21px;line-height:1.5;color:var(--fg-2);max-width:36em;margin-top:18px}
+.how{list-style:none;padding:0;margin:26px 0 0;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.how li{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:12px 14px;font-size:15px;line-height:1.4;counter-increment:how}
+.how li::before{content:counter(how);display:block;font:600 12px var(--mono);color:var(--accent-ink);margin-bottom:4px}
+.hero-actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:22px}
+
+/* steps */
+.step{padding-block:52px;border-top:1px solid var(--line);scroll-margin-top:56px}
+.sh{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.idx{font:600 13px var(--mono);color:var(--accent-ink)}
+.sh h2{font-size:clamp(26px,4.4vw,32px);line-height:1.15;font-weight:750}
+.sh .listen{margin-left:auto}
+.sub{color:var(--fg-2);margin-top:8px;max-width:40em}
+
+.btn{font:600 14px/1.2 var(--body);border-radius:8px;padding:9px 14px;border:1px solid var(--line);background:var(--surface);color:var(--fg);cursor:pointer;display:inline-flex;align-items:center;gap:7px;text-decoration:none}
+.btn:hover{border-color:var(--muted)}
+.btn.primary{background:var(--accent);color:var(--on-accent);border-color:var(--accent)}
+.btn.primary:hover{filter:brightness(1.07)}
+.btn.small{font-size:13px;padding:6px 10px}
+.btn[aria-pressed="true"]{background:var(--fg);color:var(--bg);border-color:var(--fg)}
+.btn svg{width:14px;height:14px;fill:currentColor;flex:none}
+
+.iv{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:20px 22px;margin-top:22px}
+.who{color:var(--muted);margin-bottom:8px}
+.iv p{font-size:19px;line-height:1.55}
+.iv p:last-child{margin-bottom:0}
+
+.move{display:flex;gap:12px 16px;align-items:center;flex-wrap:wrap;margin-top:18px;padding-block:14px;border-top:1px dashed var(--line);border-bottom:1px dashed var(--line)}
+.move .lbl{color:var(--accent-ink);flex:none}
+.move p{margin:0;flex:1 1 260px;min-width:0;font-weight:600}
+.move .acts{display:flex;gap:8px;flex-wrap:wrap}
+
+.ans{background:var(--accent-soft);border-radius:var(--r);padding:20px 22px;margin-top:14px}
+.ans .who{color:var(--accent-ink)}
+.ans h3{font-size:19px;margin:18px 0 8px;font-weight:700}
+.ans h3:first-of-type{margin-top:4px}
+.ans ul{margin:0 0 .6em;padding-left:1.2em}
+.ans li{margin-bottom:.35em}
+.script{font-size:18px;line-height:1.6}
+.script p{margin-bottom:.7em}
+.note{font-size:15px;color:var(--fg-2)}
+
+/* facts strip */
+.facts{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:1px;background:var(--line);border:1px solid var(--line);border-radius:var(--r);overflow:hidden;margin-top:16px}
+.facts div{background:var(--surface);padding:12px 14px;min-width:0}
+.facts .k{font:500 11px var(--mono);letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.facts .v{font:700 22px/1.2 var(--display);font-stretch:86%;margin-top:4px}
+.facts .d{font-size:13px;color:var(--fg-2);line-height:1.35;margin-top:2px}
+
+/* primer */
+.def{font:600 clamp(21px,3.4vw,26px)/1.35 var(--display);font-stretch:92%;margin-top:22px;max-width:30em}
+.split{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;margin-top:22px}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:16px 18px;min-width:0}
+.panel h3{font-size:19px;font-weight:700}
+.panel .tag{font:500 11px var(--mono);color:var(--muted);letter-spacing:.06em;text-transform:uppercase;margin:2px 0 8px}
+.panel ul{margin:0;padding-left:1.1em;font-size:16px}
+.panel li{margin-bottom:.3em}
+.cycle{list-style:none;padding:0;margin:14px 0 0;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:22px}
+.cycle li{position:relative;background:var(--surface-2);border-radius:8px;padding:12px 12px 10px;min-width:0}
+.cycle li b{display:block;font:700 17px var(--display);font-stretch:88%}
+.cycle li span{font-size:14px;color:var(--fg-2);line-height:1.35;display:block;margin-top:2px}
+.cycle li:not(:last-child)::after{content:"";position:absolute;right:-17px;top:50%;width:12px;height:12px;border-top:2px solid var(--muted);border-right:2px solid var(--muted);transform:translateY(-50%) rotate(45deg)}
+.cycle-note{font:500 12px var(--mono);color:var(--muted);margin-top:10px}
+.vocab{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:16px}
+.term{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:12px 14px;min-width:0}
+.term b{display:block;font:700 16px var(--display);font-stretch:90%;margin-bottom:3px}
+.term p{margin:0;font-size:15px;line-height:1.45;color:var(--fg-2)}
+.h-sec{font:500 11px var(--mono);letter-spacing:.09em;text-transform:uppercase;color:var(--muted);margin-top:30px}
+
+/* qa list */
+.qa{list-style:none;padding:0;margin:0;display:grid;gap:10px}
+.qa li{background:var(--surface);border-radius:8px;padding:12px 14px}
+.qa .q{font-weight:700}
+.qa .a{color:var(--fg-2);margin-top:2px}
+.qa .a::before{content:"Interviewer: ";font:500 11px var(--mono);letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+
+/* framework tree */
+.tree{margin-top:6px}
+.root{background:var(--fg);color:var(--bg);border-radius:8px;padding:12px 16px;font:700 18px/1.3 var(--display);font-stretch:90%;text-align:center;position:relative}
+.root::after{content:"";position:absolute;left:50%;bottom:-16px;width:2px;height:16px;background:var(--muted)}
+.branches{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-top:16px;padding-top:14px;border-top:2px solid var(--muted)}
+.branch{background:var(--surface);border-radius:8px;padding:12px 13px;min-width:0}
+.branch .n{font:600 12px var(--mono);color:var(--accent-ink)}
+.branch b{display:block;font:700 16px/1.25 var(--display);font-stretch:90%;margin:2px 0 6px}
+.branch ul{margin:0;padding-left:1.05em;font-size:14.5px;line-height:1.4}
+.branch li{margin-bottom:.3em}
+
+/* exhibits */
+.ex{margin:22px 0 0;background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:18px 18px 14px}
+.ex-h{display:flex;justify-content:space-between;align-items:baseline;gap:6px 12px;flex-wrap:wrap}
+.ex-t{font:700 18px var(--display);font-stretch:88%}
+.ex-ref{font:500 12px var(--mono);color:var(--muted)}
+.ex-s{font-size:14px;color:var(--fg-2);margin-top:2px}
+.ex figcaption,.src{font:400 12px/1.45 var(--mono);color:var(--muted);margin-top:12px}
+.multiples{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-top:14px}
+.mini{border:1px solid var(--grid);border-radius:8px;padding:10px 10px 4px;min-width:0}
+.mini .nm{font-weight:700;font-size:14.5px;line-height:1.25;min-height:2.5em}
+.mini .ch{font:500 12px var(--mono);color:var(--fg-2)}
+.mini svg{display:block;width:100%;height:auto;margin-top:4px}
+.tblwrap{overflow-x:auto;margin-top:12px}
+table{border-collapse:collapse;width:100%;font-size:14.5px}
+th,td{text-align:left;padding:7px 10px;border-bottom:1px solid var(--grid);white-space:nowrap}
+th{font:500 11px var(--mono);letter-spacing:.05em;text-transform:uppercase;color:var(--muted)}
+td.n,th.n{text-align:right;font-variant-numeric:tabular-nums}
+
+.hbar{margin-top:16px}
+.hrow{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.5fr);gap:4px 14px;align-items:center;padding-block:9px;border-bottom:1px solid var(--grid)}
+.hrow:last-of-type{border-bottom:0}
+.hlab b{display:block;font-size:15px;line-height:1.3}
+.hlab span{font-size:13px;color:var(--fg-2);line-height:1.3;display:block}
+.track{position:relative;height:26px}
+.bar{position:absolute;left:0;top:5px;height:16px;border-radius:0 4px 4px 0;background:var(--s1);min-width:2px}
+.bar.b2{background:var(--s2)}
+.bval{position:absolute;top:2px;font:600 13px var(--mono);color:var(--fg);white-space:nowrap;padding-left:6px}
+.tol{position:absolute;top:-4px;bottom:-4px;width:0;border-left:1.5px solid var(--fg-2)}
+.axis{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.5fr);gap:14px}
+.ticks{position:relative;height:18px;font:500 11px var(--mono);color:var(--muted);border-top:1px solid var(--axis)}
+.ticks span{position:absolute;top:3px;transform:translateX(-50%)}
+.ticks span:first-child{transform:none}
+.ticks span:last-child{transform:translateX(-100%)}
+.status{font:600 12px var(--mono);display:inline-flex;gap:5px;align-items:center;margin-top:3px}
+.status.bad{color:var(--crit-ink)} .status.ok{color:var(--good-ink)}
+.legend{display:flex;gap:16px;flex-wrap:wrap;font-size:14px;color:var(--fg-2);margin-top:10px}
+.legend span{display:inline-flex;align-items:center;gap:6px}
+.legend i{width:12px;height:12px;border-radius:3px;display:inline-block}
+.tolnote{font:500 12px var(--mono);color:var(--fg-2);margin-top:8px}
+
+/* given table + calc steps */
+.given{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:1px;background:var(--line);border:1px solid var(--line);border-radius:var(--r);overflow:hidden;margin-top:16px}
+.given div{background:var(--surface);padding:11px 13px;min-width:0}
+.given .k{font-size:13px;color:var(--fg-2);line-height:1.3}
+.given .v{font:700 20px/1.2 var(--display);font-stretch:88%;margin-top:3px}
+.calc{list-style:none;padding:0;margin:0;display:grid;gap:8px}
+.calc li{background:var(--surface);border-radius:8px;padding:12px 14px;display:grid;grid-template-columns:minmax(0,1fr) auto;gap:2px 14px;align-items:center}
+.calc .t{font:500 11px var(--mono);letter-spacing:.06em;text-transform:uppercase;color:var(--muted);grid-column:1/-1}
+.calc .f{font-size:16px;min-width:0}
+.calc .r{font:700 20px var(--display);font-stretch:88%;text-align:right;white-space:nowrap}
+.stepper .row{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+.chipset{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+.chipset span{font:500 12px var(--mono);background:var(--surface);border-radius:6px;padding:4px 8px;color:var(--fg-2)}
+.chipset b{color:var(--fg)}
+
+/* heat map */
+.heat{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);gap:18px;align-items:start;margin-top:12px}
+.heat svg{width:100%;height:auto;display:block}
+.heat svg text{font-family:var(--mono)}
+.reg{list-style:none;padding:0;margin:0;display:grid;gap:6px}
+.reg li{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:10px;align-items:center;font-size:14.5px;line-height:1.3;padding-block:6px;border-bottom:1px solid var(--grid)}
+.reg .id{width:28px;height:28px;border-radius:50%;background:var(--dot);color:var(--dot-ink);font:600 11px var(--mono);display:grid;place-items:center}
+.reg .sc{font:600 13px var(--mono);color:var(--fg-2);text-align:right;white-space:nowrap}
+.ramp{display:flex;align-items:center;gap:6px;font:500 11px var(--mono);color:var(--muted);margin-top:10px}
+.ramp i{width:22px;height:10px;display:inline-block;border-radius:2px}
+
+/* roadmap */
+.road{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-top:8px}
+.phase{background:var(--surface);border-radius:8px;padding:12px 14px;min-width:0}
+.phase .d{font:600 12px var(--mono);color:var(--accent-ink)}
+.phase b{display:block;font:700 18px var(--display);font-stretch:88%;margin:2px 0 6px}
+.phase ul{margin:0;padding-left:1.05em;font-size:15px;line-height:1.4}
+.phase li{margin-bottom:.35em}
+.struct{display:flex;flex-wrap:wrap;gap:6px;margin:4px 0 12px}
+.struct span{font:600 12px var(--mono);padding:4px 9px;border-radius:999px;background:var(--surface);color:var(--fg)}
+
+/* drivers */
+.drivers{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:6px}
+.drivers div{background:var(--surface);border-radius:8px;padding:11px 13px;min-width:0}
+.drivers b{display:block;font:700 16px var(--display);font-stretch:90%}
+.drivers p{margin:2px 0 0;font-size:15px;color:var(--fg-2);line-height:1.45}
+.eq{font:600 15px var(--mono);background:var(--surface);border-radius:8px;padding:10px 14px;margin:6px 0 12px;overflow-x:auto}
+.drill{margin-top:34px}
+.drill h3{font-size:22px;font-weight:750}
+
+/* multiple choice */
+.mc{margin-top:20px}
+.mc-head{display:flex;gap:10px;align-items:flex-start}
+.stem{font-weight:700;font-size:18px;line-height:1.45;margin:0 0 10px;flex:1;min-width:0}
+.opts{display:grid;gap:8px}
+.opt{text-align:left;display:flex;gap:10px;align-items:flex-start;padding:11px 14px;border:1px solid var(--line);border-radius:8px;background:var(--surface);color:var(--fg);font:inherit;font-size:16px;line-height:1.45;cursor:pointer;width:100%}
+.opt:hover:not([disabled]){border-color:var(--muted)}
+.opt[disabled]{cursor:default}
+.opt .L{font:600 13px/1.6 var(--mono);color:var(--muted);flex:none}
+.opt .x{flex:1;min-width:0}
+.opt .tag{font:600 12px/1.7 var(--mono);white-space:nowrap;flex:none}
+.opt.right{border-color:var(--good);background:color-mix(in srgb,var(--good) 10%,var(--surface))}
+.opt.right .tag{color:var(--good-ink)}
+.opt.wrong{border-color:var(--crit);background:color-mix(in srgb,var(--crit) 9%,var(--surface))}
+.opt.wrong .tag{color:var(--crit-ink)}
+.why{margin-top:10px;padding:13px 16px;border-radius:8px;background:var(--surface-2);font-size:16px}
+.why p:last-child{margin-bottom:0}
+.test .mc{border-top:1px solid var(--line);padding-top:20px;margin-top:22px}
+.test .mc:first-of-type{border-top:0;padding-top:0}
+.qn{font:600 13px var(--mono);color:var(--accent-ink);display:block;margin-bottom:2px}
+.scorebar{position:sticky;top:calc(env(safe-area-inset-top,0px) + 50px);z-index:5;display:flex;gap:12px;align-items:center;flex-wrap:wrap;background:var(--bg);padding-block:10px;margin-top:14px;border-bottom:1px solid var(--line)}
+.score{font:700 22px var(--display);font-stretch:86%}
+.score small{font:500 12px var(--mono);color:var(--muted);margin-left:6px}
+.done{background:var(--accent-soft);border-radius:var(--r);padding:16px 18px;margin-top:24px}
+
+footer{padding-block:40px 64px;border-top:1px solid var(--line);font-size:14px;color:var(--fg-2)}
+
+#tip{position:fixed;z-index:50;pointer-events:none;background:var(--tip-bg);color:var(--tip-fg);font:500 12px/1.4 var(--mono);padding:6px 9px;border-radius:6px;max-width:260px;box-shadow:0 4px 14px rgba(0,0,0,.18)}
+
+@media (max-width:760px){
+  .branches{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .facts{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .heat{grid-template-columns:minmax(0,1fr)}
+  .road{grid-template-columns:minmax(0,1fr)}
+  .multiples{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@media (max-width:600px){
+  body{font-size:16px}
+  .how{grid-template-columns:minmax(0,1fr)}
+  .split,.vocab,.drivers{grid-template-columns:minmax(0,1fr)}
+  .cycle{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .cycle li:nth-child(2)::after{display:none}
+  .given{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .hrow,.axis{grid-template-columns:minmax(0,1fr)}
+  .axis>div:first-child{display:none}
+  .iv p{font-size:18px}
+  .speed span{display:none}
+}
+@media (max-width:420px){
+  .branches{grid-template-columns:minmax(0,1fr)}
+}
+@media (prefers-reduced-motion:no-preference){
+  .ans:not([hidden]),.why:not([hidden]),.calc li:not([hidden]){animation:rise .28s ease-out}
+  @keyframes rise{from{transform:translateY(4px);opacity:.4}to{transform:none;opacity:1}}
+  html{scroll-behavior:smooth}
+}
+</style>
+
+<nav class="rail" aria-label="Case steps">
+  <div class="rail-in">
+    <div class="chips" id="chips">
+      <a href="#primer">Primer</a><a href="#prompt">Prompt</a><a href="#clarify">Clarify</a><a href="#framework">Framework</a><a href="#ex1">Exhibit 1</a><a href="#ex2">Exhibit 2</a><a href="#sizing">Sizing</a><a href="#prioritize">Prioritize</a><a href="#recommend">Recommend</a><a href="#drills">Drills</a><a href="#test">Test</a>
+    </div>
+    <label class="speed" for="rate"><span>Voice</span>
+      <select id="rate" aria-label="Read-aloud speed">
+        <option value="0.9">0.9×</option><option value="1" selected>1×</option><option value="1.15">1.15×</option><option value="1.3">1.3×</option>
+      </select>
+    </label>
+  </div>
+</nav>
+
+<main>
+<header class="hero wrap">
+  <p class="eyebrow">Mock case · EY Technology Risk · about 35 minutes</p>
+  <h1>Harbor Regional Bank</h1>
+  <p class="lede" data-say>A mid-size bank wants 30 percent more digital customers in two years. You're the EY consultant deciding whether it can get there without taking on unacceptable technology risk, and what to fix first.</p>
+  <ol class="how">
+    <li><b>Listen or read</b> the interviewer's prompt. Every step has a Listen button.</li>
+    <li><b>Answer out loud</b> before you reveal anything. Use the timers.</li>
+    <li><b>Compare</b> with the strong answer, then move to the next step.</li>
+  </ol>
+  <div class="hero-actions">
+    <a class="btn primary" href="#prompt">Start the case</a>
+    <a class="btn" href="#primer">2-minute primer first</a>
+    <a class="btn" href="#test">Jump to the practice test</a>
+  </div>
+</header>
+
+<div class="wrap">
+
+<!-- 01 PRIMER -->
+<section class="step" id="primer">
+  <div class="sh"><span class="idx">01</span><h2>What technology risk means at EY</h2><button class="btn small listen" type="button">Listen</button></div>
+  <p class="def" data-say>Technology risk is the chance that the systems and data a business runs on get breached, break down, or break the rules. The job is finding those risks and making sure the right controls are in place.</p>
+  <p class="sub" data-say>Put simply, EY's technology risk teams help clients answer one question: can we trust our systems and our data, especially while the business is changing?</p>
+
+  <div class="split">
+    <div class="panel">
+      <h3>IT audit and assurance</h3>
+      <p class="tag">Supports the financial statement audit</p>
+      <ul data-say>
+        <li>Test IT general controls behind financial systems.</li>
+        <li>SOX section 404 IT testing for public companies.</li>
+        <li>SOC 1 and SOC 2 reports for service providers.</li>
+      </ul>
+    </div>
+    <div class="panel">
+      <h3>Technology risk consulting</h3>
+      <p class="tag">Helps clients manage risk as they change</p>
+      <ul data-say>
+        <li>Cyber and identity risk assessments.</li>
+        <li>Third-party, or vendor, risk management.</li>
+        <li>Risk in cloud, ERP, and AI rollouts.</li>
+        <li>Resilience: outages, backups, disaster recovery.</li>
+        <li>Data privacy and regulatory readiness.</li>
+      </ul>
+    </div>
+  </div>
+
+  <p class="h-sec">What a first-year actually does</p>
+  <ul data-say style="margin:8px 0 0;padding-left:1.2em">
+    <li><b>Walkthroughs.</b> Sit with an IT owner and trace how a control works, step by step.</li>
+    <li><b>Testing.</b> Pull a sample, say 25 change tickets, and check each one for approval.</li>
+    <li><b>Documenting.</b> Write up what you saw and what you tested in workpapers.</li>
+    <li><b>Findings.</b> Explain the gap, the risk, and the fix in plain business language.</li>
+  </ul>
+
+  <p class="h-sec">The risk lifecycle, the loop behind every engagement</p>
+  <ol class="cycle" data-say aria-label="Identify, assess, respond, monitor">
+    <li><b>Identify</b><span>What could go wrong?</span></li>
+    <li><b>Assess</b><span>How likely, and how bad?</span></li>
+    <li><b>Respond</b><span>Avoid, mitigate, transfer, or accept.</span></li>
+    <li><b>Monitor</b><span>Are controls still working?</span></li>
+  </ol>
+  <p class="cycle-note">↺ Then repeat as the business changes</p>
+
+  <p class="h-sec">Ten terms to drop naturally</p>
+  <div class="vocab">
+    <div class="term" data-say><b>IT general controls (ITGCs)</b><p>Baseline controls over IT, in four domains: access to programs and data, program changes, program development, and computer operations.</p></div>
+    <div class="term" data-say><b>Risk = likelihood × impact</b><p>How likely is it, and how bad would it be? Plot both on a heat map to prioritize.</p></div>
+    <div class="term" data-say><b>Inherent vs. residual risk</b><p>Inherent is the risk before controls. Residual is what is left after controls.</p></div>
+    <div class="term" data-say><b>Preventive vs. detective</b><p>Preventive controls stop a problem, like multi-factor login. Detective controls catch it after, like a weekly log review.</p></div>
+    <div class="term" data-say><b>Four risk responses</b><p>Avoid it, mitigate it, transfer it (for example, insurance), or accept it.</p></div>
+    <div class="term" data-say><b>Least privilege</b><p>People and vendors get only the access they need, only for as long as they need it.</p></div>
+    <div class="term" data-say><b>NIST CSF 2.0</b><p>A widely used cybersecurity framework with six functions: Govern, Identify, Protect, Detect, Respond, Recover.</p></div>
+    <div class="term" data-say><b>SOC 1 vs. SOC 2</b><p>SOC 1 covers controls that matter to a customer's financial reporting. SOC 2 covers security, availability, processing integrity, confidentiality, and privacy.</p></div>
+    <div class="term" data-say><b>Three Lines model</b><p>First line: management owns the risk. Second line: risk and compliance oversee it. Third line: internal audit gives independent assurance.</p></div>
+    <div class="term" data-say><b>COSO and COBIT</b><p>COSO is the standard internal control framework. COBIT is its IT governance counterpart. Refer to both as control frameworks.</p></div>
+  </div>
+</section>
+
+<!-- 02 PROMPT -->
+<section class="step" id="prompt">
+  <div class="sh"><span class="idx">02</span><h2>The case prompt</h2><button class="btn small listen" type="button">Listen</button></div>
+  <div class="iv">
+    <p class="who">Interviewer</p>
+    <p data-say>Our client is Harbor Regional Bank, a mid-size U.S. bank with about 900,000 customers and 14 billion dollars in assets.</p>
+    <p data-say>Leadership wants to grow digital customers by 30 percent over the next two years. To get there, the bank is doing two things: launching a new mobile banking app built with a fintech partner, and moving its customer data platform to the public cloud.</p>
+    <p data-say>The board has been reading about breaches and outages at other banks. The Chief Risk Officer has asked EY: can we pursue this growth plan safely, and which technology risks should we fix first?</p>
+  </div>
+  <div class="facts">
+    <div><div class="k">Customers</div><div class="v">900K</div><div class="d">Mid-size U.S. bank</div></div>
+    <div><div class="k">Assets</div><div class="v">$14B</div><div class="d">Regulated by bank examiners</div></div>
+    <div><div class="k">Goal</div><div class="v">+30%</div><div class="d">Digital customers in 24 months</div></div>
+    <div><div class="k">Big moves</div><div class="v">2</div><div class="d">Fintech-built app; cloud data platform</div></div>
+  </div>
+  <div class="move">
+    <span class="lbl">Your move</span>
+    <p data-say>Restate the question in one sentence before you do anything else.</p>
+    <div class="acts"><button class="btn small timer" type="button" data-secs="20">20s timer</button><button class="btn primary small reveal" type="button" aria-controls="a-prompt" aria-expanded="false">Show a strong answer</button></div>
+  </div>
+  <div class="ans" id="a-prompt" hidden>
+    <p class="who">Strong answer</p>
+    <div class="script"><p data-say>"So the goal is to tell the CRO whether the digital growth plan can go ahead safely, and to prioritize which technology risks to fix first. Is that right?"</p></div>
+    <p class="note" data-say>Interviewer: "Yes, exactly." Restating confirms the objective, shows you listened, and buys you a few seconds to think.</p>
+  </div>
+</section>
+
+<!-- 03 CLARIFY -->
+<section class="step" id="clarify">
+  <div class="sh"><span class="idx">03</span><h2>Clarifying questions</h2><button class="btn small listen" type="button">Listen</button></div>
+  <div class="move">
+    <span class="lbl">Your move</span>
+    <p data-say>Ask two or three clarifying questions. Pick ones whose answers would change your approach.</p>
+    <div class="acts"><button class="btn small timer" type="button" data-secs="60">60s timer</button><button class="btn primary small reveal" type="button" aria-controls="a-clarify" aria-expanded="false">Show strong questions</button></div>
+  </div>
+  <div class="ans" id="a-clarify" hidden>
+    <p class="who">Strong questions, with the interviewer's answers</p>
+    <ul class="qa">
+      <li data-say><div class="q">What does success look like: a yes-or-no, or a prioritized plan?</div><div class="a">A ranked list of top risks and a 90-day plan the board can approve.</div></li>
+      <li data-say><div class="q">When does the cloud migration go live?</div><div class="a">The cutover is planned for six months from now.</div></li>
+      <li data-say><div class="q">Has the bank had any recent incidents?</div><div class="a">Yes. Last quarter, a fintech vendor's account was used to get into a test environment. No customer data was lost, but it rattled leadership.</div></li>
+      <li data-say><div class="q">Is there a budget for new controls?</div><div class="a">About 3 million dollars a year.</div></li>
+      <li data-say><div class="q">Are regulators watching anything in particular?</div><div class="a">Bank examiners will look closely at third-party and cyber risk.</div></li>
+    </ul>
+    <p class="note" style="margin-top:12px" data-say>Skip questions that don't change your approach, like how many employees the bank has. Two or three sharp questions beat six generic ones.</p>
+  </div>
+</section>
+
+<!-- 04 FRAMEWORK -->
+<section class="step" id="framework">
+  <div class="sh"><span class="idx">04</span><h2>Build the framework</h2><button class="btn small listen" type="button">Listen</button></div>
+  <div class="iv">
+    <p class="who">Interviewer</p>
+    <p data-say>Great. How would you structure your approach to this problem?</p>
+  </div>
+  <div class="move">
+    <span class="lbl">Your move</span>
+    <p data-say>Take 60 seconds to sketch three or four buckets, then walk the interviewer through them out loud.</p>
+    <div class="acts"><button class="btn small timer" type="button" data-secs="60">60s timer</button><button class="btn primary small reveal" type="button" aria-controls="a-frame" aria-expanded="false">Show a strong framework</button></div>
+  </div>
+  <div class="ans" id="a-frame" hidden>
+    <p class="who">Strong framework</p>
+    <div class="tree">
+      <div class="root">Can Harbor grow digitally without unacceptable technology risk, and what should it fix first?</div>
+      <div class="branches">
+        <div class="branch"><span class="n">1</span><b>Growth plan and risk appetite</b><ul><li>What's changing: new app, fintech partner, cloud</li><li>How much risk the board will tolerate</li><li>What regulators expect</li></ul></div>
+        <div class="branch"><span class="n">2</span><b>Identify the risks</b><ul><li>Identity and access</li><li>Third-party (vendor) risk</li><li>Change and resilience</li><li>Cloud configuration</li><li>Data and privacy</li></ul></div>
+        <div class="branch"><span class="n">3</span><b>Assess and prioritize</b><ul><li>Incident trends</li><li>Control testing (ITGCs)</li><li>Likelihood × impact</li><li>Dollar exposure</li></ul></div>
+        <div class="branch"><span class="n">4</span><b>Respond and roadmap</b><ul><li>Fixes, cost vs. risk reduced</li><li>30/60/90-day plan</li><li>Owners and risk indicators</li></ul></div>
+      </div>
+    </div>
+    <h3>Say it like this</h3>
+    <div class="script">
+      <p data-say>"I'd break this into four parts. First, I'd understand the growth plan and the bank's risk appetite: what's changing, and how much risk the board will accept. Second, I'd identify the technology risks the plan creates, across access, vendors, change management, cloud, and data. Third, I'd assess and prioritize them using incident data, control testing results, and a likelihood-times-impact view, ideally in dollars. Fourth, I'd recommend fixes and a 90-day roadmap with owners. I'd like to start with the incident and control data, since that shows where risk is already showing up."</p>
+    </div>
+    <h3>Why it works</h3>
+    <ul data-say>
+      <li>It answers the question that was asked: is it safe, and what comes first.</li>
+      <li>The buckets don't overlap and they flow: context, identify, prioritize, act.</li>
+      <li>It ends with a hypothesis about where to start, which hands the interviewer a natural next step.</li>
+    </ul>
+    <p class="note" data-say>If you blank, "people, process, technology" works as a lens inside bucket 2. On its own it doesn't say what to fix first, so tie it back to the question.</p>
+  </div>
+</section>
+
+<!-- 05 EXHIBIT 1 -->
+<section class="step" id="ex1">
+  <div class="sh"><span class="idx">05</span><h2>Exhibit 1: incident trends</h2><button class="btn small listen" type="button">Listen</button></div>
+  <div class="iv">
+    <p class="who">Interviewer</p>
+    <p data-say>Good place to start. The bank's security team shared incident counts for the last four quarters. Take a look. What stands out to you?</p>
+  </div>
+  <figure class="ex">
+    <div class="ex-h"><span class="ex-t">Security incidents logged, by type</span><span class="ex-ref">Exhibit 1 · WP-IR-01</span></div>
+    <p class="ex-s">Count per quarter, Q4 2025 to Q3 2026. Each panel has its own scale, starting at zero.</p>
+    <div class="multiples" id="mult"></div>
+    <div class="row" style="margin-top:12px"><button class="btn small reveal" type="button" aria-controls="t-ex1" aria-expanded="false">Show as table</button></div>
+    <div class="tblwrap" id="t-ex1" hidden></div>
+    <figcaption>Source: Harbor security operations log (case data).</figcaption>
+  </figure>
+
+  <div class="mc" data-answer="1">
+    <div class="mc-head"><p class="stem" data-say>Which finding should you lead with?</p></div>
+    <div class="opts">
+      <button class="opt" type="button" data-say>Phishing is the biggest problem because it has by far the highest volume.</button>
+      <button class="opt" type="button" data-say>Access and vendor incidents are growing fastest, right as the bank adds a new fintech partner.</button>
+      <button class="opt" type="button" data-say>Malware is rising, so the bank needs a new antivirus tool.</button>
+      <button class="opt" type="button" data-say>Totals are fairly stable, so no action is needed.</button>
+    </div>
+    <div class="why" hidden>
+      <p data-say>Volume is not the same as risk. Phishing is flat at about 120 a quarter, which suggests the existing email controls are holding. Unauthorized access tripled, from 6 to 18. Vendor-related incidents grew more than five times, from 2 to 11. Outages after system changes rose from 3 to 8. The growth plan adds a vendor and a lot of change, so these are the trends that get worse.</p>
+    </div>
+  </div>
+
+  <div class="move">
+    <span class="lbl">Then</span>
+    <p data-say>Say the insight out loud, tie it to the growth plan, and ask for the next piece of data.</p>
+    <div class="acts"><button class="btn primary small reveal" type="button" aria-controls="a-ex1" aria-expanded="false">Show how to say it</button></div>
+  </div>
+  <div class="ans" id="a-ex1" hidden>
+    <p class="who">Say it like this</p>
+    <div class="script"><p data-say>"Two things stand out. Phishing is the biggest by volume, but it's flat, so the email controls seem to be working. What worries me is that unauthorized access tripled and vendor-related incidents grew more than fivefold. The growth plan adds a fintech partner and a lot of system change, so these are exactly the trends that would get worse. I'd want to know why access is failing. Do we have any control testing results?"</p></div>
+    <p class="note" data-say>Notice the pattern: insight, then so-what for the client, then a hypothesis-driven ask. That ask leads the interviewer to Exhibit 2.</p>
+  </div>
+</section>
+
+<!-- 06 EXHIBIT 2 -->
+<section class="step" id="ex2">
+  <div class="sh"><span class="idx">06</span><h2>Exhibit 2: control testing</h2><button class="btn small listen" type="button">Listen</button></div>
+  <div class="iv">
+    <p class="who">Interviewer</p>
+    <p data-say>Good instinct. Our EY team tested the bank's IT general controls last month. Here are the results. What's your read?</p>
+  </div>
+  <figure class="ex">
+    <div class="ex-h"><span class="ex-t">ITGC test results: exception rate by domain</span><span class="ex-ref">Exhibit 2 · WP-ITGC-04</span></div>
+    <p class="ex-s">Share of sampled items where the control failed. The bank's tolerance is 5%.</p>
+    <div class="hbar" id="itgc"></div>
+    <p class="tolnote">Also noted: privileged (admin) access reviews were skipped in 2 of the last 4 quarters.</p>
+    <figcaption>Source: EY ITGC testing, sampled items (case data).</figcaption>
+  </figure>
+
+  <div class="mc" data-answer="2">
+    <div class="mc-head"><p class="stem" data-say>What's the so-what?</p></div>
+    <div class="opts">
+      <button class="opt" type="button" data-say>Program development is the riskiest area.</button>
+      <button class="opt" type="button" data-say>Any exception rate under 25 percent is acceptable.</button>
+      <button class="opt" type="button" data-say>Access and change controls fail about one time in four, which explains the incident spikes in Exhibit 1. Fix them before the cloud cutover.</button>
+      <button class="opt" type="button" data-say>The bank should hire more internal auditors.</button>
+    </div>
+    <div class="why" hidden>
+      <p data-say>Connect the exhibits. Departed employees keeping access helps explain the rise in unauthorized access. Changes going live without approval help explain the outages after changes. These are root causes, not one-off events. A cloud migration creates lots of new access and lots of change, so these controls need to work before cutover.</p>
+    </div>
+  </div>
+
+  <div class="move">
+    <span class="lbl">Then</span>
+    <p data-say>Synthesize both exhibits in three sentences.</p>
+    <div class="acts"><button class="btn primary small reveal" type="button" aria-controls="a-ex2" aria-expanded="false">Show how to say it</button></div>
+  </div>
+  <div class="ans" id="a-ex2" hidden>
+    <p class="who">Say it like this</p>
+    <div class="script"><p data-say>"Access and change management controls are failing about one time in four, far above the 5 percent tolerance. That lines up with Exhibit 1: people who left still have access, and changes reach production without approval, which matches the rise in unauthorized access and outages. Since the cloud migration means a lot of new access and a lot of change, I'd treat these as must-fix items before cutover."</p></div>
+  </div>
+</section>
+
+<!-- 07 SIZING -->
+<section class="step" id="sizing">
+  <div class="sh"><span class="idx">07</span><h2>Risk sizing: put a dollar figure on it</h2><button class="btn small listen" type="button">Listen</button></div>
+  <p class="sub" data-say>This is the technology risk version of market sizing. Same skills: state the formula, make clear assumptions, do clean math, then sanity-check.</p>
+  <div class="iv">
+    <p class="who">Interviewer</p>
+    <p data-say>The CRO wants a number. Estimate the exposure if customer data on the new cloud platform were breached, and tell me whether a 3 million dollar a year control program is worth it.</p>
+  </div>
+  <div class="given">
+    <div><div class="k">Customers</div><div class="v">900,000</div></div>
+    <div><div class="k">Records moving to cloud in phase one</div><div class="v">60%</div></div>
+    <div><div class="k">Cost per breached record*</div><div class="v">$150</div></div>
+    <div><div class="k">Chance of a major breach per year, today</div><div class="v">10%</div></div>
+    <div><div class="k">Chance per year with the program</div><div class="v">4%</div></div>
+    <div><div class="k">Program cost per year</div><div class="v">$3M</div></div>
+  </div>
+  <p class="src">*Case assumption covering notification, credit monitoring, legal costs, fines, and lost customers.</p>
+  <div class="move">
+    <span class="lbl">Your move</span>
+    <p data-say>Say the formula before you calculate: expected annual loss equals impact of one breach times the chance it happens in a year.</p>
+    <div class="acts"><button class="btn small timer" type="button" data-secs="90">90s timer</button></div>
+  </div>
+  <div class="stepper" style="margin-top:14px">
+    <ol class="calc">
+      <li class="st" hidden data-say="Step 1. Records at risk. 900 thousand customers times 60 percent equals 540 thousand records."><span class="t">1 · Records at risk</span><span class="f">900,000 customers × 60%</span><span class="r tnum">540,000</span></li>
+      <li class="st" hidden data-say="Step 2. Impact of one breach. 540 thousand records times 150 dollars equals 81 million dollars. This is called the single loss expectancy."><span class="t">2 · Impact of one breach (single loss)</span><span class="f">540,000 × $150</span><span class="r tnum">$81M</span></li>
+      <li class="st" hidden data-say="Step 3. Expected loss per year today. 81 million times 10 percent equals 8.1 million dollars a year."><span class="t">3 · Expected loss per year, today</span><span class="f">$81M × 10%</span><span class="r tnum">$8.1M</span></li>
+      <li class="st" hidden data-say="Step 4. Expected loss per year with the program. 81 million times 4 percent equals about 3.24 million dollars."><span class="t">4 · Expected loss per year, with the program</span><span class="f">$81M × 4%</span><span class="r tnum">$3.24M</span></li>
+      <li class="st" hidden data-say="Step 5. Value of the program. 8.1 million minus 3.24 million is 4.86 million in reduced losses, against a 3 million dollar cost. Net benefit is about 1.86 million dollars a year, or about 1.6 dollars of risk reduced for every dollar spent."><span class="t">5 · Value of the program</span><span class="f">$4.86M less expected loss − $3M cost</span><span class="r tnum">+$1.86M / yr</span></li>
+      <li class="st" hidden data-say="Step 6. Break-even check. 3 million divided by 81 million is about 3.7 percentage points. So the program pays for itself as long as it cuts the annual breach chance from 10 percent to about 6.3 percent or lower."><span class="t">6 · Break-even check</span><span class="f">$3M ÷ $81M ≈ 3.7 points. Pays off if breach odds fall from 10% to ≈6.3% or lower</span><span class="r tnum">≈3.7 pts</span></li>
+    </ol>
+    <div class="row"><button class="btn primary small next" type="button">Reveal step 1 of 6</button><button class="btn small reset" type="button">Start over</button></div>
+  </div>
+
+  <figure class="ex">
+    <div class="ex-h"><span class="ex-t">Annual cost: do nothing vs. invest</span><span class="ex-ref">Risk sizing · $ millions per year</span></div>
+    <div class="legend"><span><i style="background:var(--s1)"></i>Expected breach loss</span><span><i style="background:var(--s2)"></i>Control program cost</span></div>
+    <div class="hbar" id="roi"></div>
+    <figcaption>Investing costs $6.24M a year in total vs. $8.1M of expected loss: about $1.86M a year better off.</figcaption>
+  </figure>
+
+  <div class="mc" data-answer="2">
+    <div class="mc-head"><p class="stem" data-say>Quick check: what's the expected annual loss today?</p></div>
+    <div class="opts">
+      <button class="opt" type="button" data-say>810 thousand dollars</button>
+      <button class="opt" type="button" data-say>81 million dollars</button>
+      <button class="opt" type="button" data-say>8.1 million dollars</button>
+      <button class="opt" type="button" data-say>13.5 million dollars</button>
+    </div>
+    <div class="why" hidden><p data-say>81 million dollars of impact times a 10 percent chance per year is 8.1 million dollars a year. 81 million is the impact of one breach, not the expected annual loss.</p></div>
+  </div>
+
+  <div class="chipset" aria-label="Vocabulary">
+    <span><b>SLE</b> single loss expectancy = $81M</span>
+    <span><b>ARO</b> annual rate of occurrence = 10%</span>
+    <span><b>ALE</b> = SLE × ARO = $8.1M</span>
+  </div>
+  <div class="move">
+    <span class="lbl">Then</span>
+    <p data-say>Summarize the math in two sentences, and add one sanity check.</p>
+    <div class="acts"><button class="btn primary small reveal" type="button" aria-controls="a-size" aria-expanded="false">Show how to say it</button></div>
+  </div>
+  <div class="ans" id="a-size" hidden>
+    <p class="who">Say it like this</p>
+    <div class="script"><p data-say>"A breach of the cloud platform would cost about 81 million dollars, which is about 8 million a year in expected losses at today's odds. The 3 million dollar program cuts that by almost 5 million, so it pays for itself. Even if I'm too optimistic about its effect, it breaks even as long as it cuts breach odds by about 4 points, and that's before counting fewer outages and a better standing with regulators."</p></div>
+  </div>
+</section>
+
+<!-- 08 PRIORITIZE -->
+<section class="step" id="prioritize">
+  <div class="sh"><span class="idx">08</span><h2>Prioritize on a heat map</h2><button class="btn small listen" type="button">Listen</button></div>
+  <div class="iv">
+    <p class="who">Interviewer</p>
+    <p data-say>Here's the team's risk register plotted on a heat map. If the bank can only tackle three things in the next 90 days, which three, and why?</p>
+  </div>
+  <figure class="ex">
+    <div class="ex-h"><span class="ex-t">Risk heat map: likelihood × impact</span><span class="ex-ref">Exhibit 3 · Risk register</span></div>
+    <div class="heat">
+      <div id="heatmap"></div>
+      <div>
+        <ul class="reg" id="reglist"></ul>
+        <div class="ramp" aria-hidden="true">Score <i style="background:var(--h1)"></i><i style="background:var(--h2)"></i><i style="background:var(--h3)"></i><i style="background:var(--h4)"></i><i style="background:var(--h5)"></i> higher</div>
+      </div>
+    </div>
+    <figcaption>Scores are 1 to 5 for each axis; score = likelihood × impact (case data).</figcaption>
+  </figure>
+
+  <div class="mc" data-answer="0">
+    <div class="mc-head"><p class="stem" data-say>Which three come first?</p></div>
+    <div class="opts">
+      <button class="opt" type="button" data-say>R1, R2, and R3: partner access, user access, and unapproved changes.</button>
+      <button class="opt" type="button" data-say>R4, R5, and R6: cloud setup, phishing, and backups.</button>
+      <button class="opt" type="button" data-say>R1, R5, and R6.</button>
+      <button class="opt" type="button" data-say>All six at once, with equal effort.</button>
+    </div>
+    <div class="why" hidden>
+      <p data-say>R1, R2, and R3 score highest, and they are backed by evidence: rising incidents in Exhibit 1 and failed controls in Exhibit 2. R4, cloud misconfiguration, is high impact but hasn't happened yet, so make secure configuration a go-live requirement for the cutover. R5, phishing, is frequent but lower impact because controls are working. R6 is low on both.</p>
+    </div>
+  </div>
+</section>
+
+<!-- 09 RECOMMEND -->
+<section class="step" id="recommend">
+  <div class="sh"><span class="idx">09</span><h2>The recommendation</h2><button class="btn small listen" type="button">Listen</button></div>
+  <div class="iv">
+    <p class="who">Interviewer</p>
+    <p data-say>The CRO just walked in. You have 60 seconds. What's your recommendation?</p>
+  </div>
+  <div class="move">
+    <span class="lbl">Your move</span>
+    <p data-say>Lead with the answer. Then three reasons, the main risk, and next steps.</p>
+    <div class="acts"><button class="btn small timer" type="button" data-secs="60">60s timer</button><button class="btn primary small reveal" type="button" aria-controls="a-rec" aria-expanded="false">Show a strong answer</button></div>
+  </div>
+  <div class="ans" id="a-rec" hidden>
+    <p class="who">Strong answer</p>
+    <div class="struct"><span>Answer</span><span>3 reasons</span><span>Risk</span><span>Next steps</span></div>
+    <div class="script">
+      <p data-say>"Harbor can go ahead with the digital growth plan, but it should make the cloud cutover conditional on fixing three control gaps in the next 90 days."</p>
+      <p data-say>"First, fintech partner access. Give the partner least-privilege, time-limited access with multi-factor login and monitoring. Vendor incidents grew more than five times over the last four quarters."</p>
+      <p data-say>"Second, user access. Remove access within 24 hours of someone leaving, and review admin accounts every quarter. Today, about one in four departed employees still have access."</p>
+      <p data-say>"Third, change management. Nothing reaches production without documented approval. About one in four changes skip it, and outages after changes have nearly tripled."</p>
+      <p data-say>"The program costs about 3 million dollars a year and cuts expected breach losses by almost 5 million, so it pays for itself. The main risk is that the cutover slips a few weeks, which is a fair trade. Next steps: name an owner for each fix, track key risk indicators monthly, and have us re-test the controls before go-live."</p>
+    </div>
+    <h3>The 90-day roadmap</h3>
+    <div class="road">
+      <div class="phase" data-say><span class="d">Days 1–30</span><b>Contain</b><ul><li>Remove access for everyone who has left.</li><li>Lock fintech partner access to least privilege, with multi-factor login.</li><li>Freeze production changes that lack approval.</li></ul></div>
+      <div class="phase" data-say><span class="d">Days 31–60</span><b>Fix</b><ul><li>Automate removal of access when HR records a departure.</li><li>Start quarterly admin access reviews.</li><li>Build required approvals into the release pipeline.</li><li>Add security terms to the partner contract.</li></ul></div>
+      <div class="phase" data-say><span class="d">Days 61–90</span><b>Prove</b><ul><li>Re-test the failed ITGCs.</li><li>Set a secure cloud configuration baseline.</li><li>Report risk indicators to the board.</li><li>Go or no-go decision on cutover.</li></ul></div>
+    </div>
+    <h3>Key risk indicators to track</h3>
+    <ul data-say>
+      <li>Percent of departed users removed within 24 hours. Target: 100 percent.</li>
+      <li>Production changes without approval. Target: zero.</li>
+      <li>Vendor accounts using multi-factor login. Target: 100 percent.</li>
+      <li>High-risk findings past their due date. Target: zero.</li>
+    </ul>
+  </div>
+</section>
+
+<!-- 10 DRILLS -->
+<section class="step" id="drills">
+  <div class="sh"><span class="idx">10</span><h2>Bonus drills: market sizing and growth</h2><button class="btn small listen" type="button">Listen</button></div>
+  <p class="sub">Two short reps in case the interviewer switches to a classic consulting question.</p>
+
+  <div class="drill">
+    <h3>Market sizing: SOC 2 audits</h3>
+    <div class="iv">
+      <p class="who">Interviewer</p>
+      <p data-say>Estimate the annual U.S. market for SOC 2 audits.</p>
+    </div>
+    <div class="move">
+      <span class="lbl">Your move</span>
+      <p data-say>Go top-down. Start with all businesses, narrow to the ones that need a SOC 2, then multiply by price. Say each assumption out loud.</p>
+      <div class="acts"><button class="btn small timer" type="button" data-secs="90">90s timer</button></div>
+    </div>
+    <div class="stepper" style="margin-top:14px">
+      <ol class="calc">
+        <li class="st" hidden data-say="Start broad. There are roughly 6 million U.S. businesses with employees."><span class="t">Start broad</span><span class="f">U.S. businesses with employees</span><span class="r tnum">≈6,000,000</span></li>
+        <li class="st" hidden data-say="Times 2 percent that sell technology or data services to other businesses, like software, payroll, or cloud hosting. That's 120 thousand."><span class="t">× 2% sell tech or data services to businesses</span><span class="f">Software, payroll, hosting, fintech</span><span class="r tnum">120,000</span></li>
+        <li class="st" hidden data-say="Times 25 percent that are big enough that enterprise customers demand a SOC 2. That's 30 thousand."><span class="t">× 25% big enough that customers demand one</span><span class="f">Enterprise buyers ask for proof of controls</span><span class="r tnum">30,000</span></li>
+        <li class="st" hidden data-say="Times 60 percent that actually get a report every year. That's 18 thousand audits."><span class="t">× 60% get a report every year</span><span class="f">Audits per year</span><span class="r tnum">18,000</span></li>
+        <li class="st" hidden data-say="Times an average fee of 40 thousand dollars. That's about 720 million dollars a year."><span class="t">× $40K average audit fee</span><span class="f">18,000 × $40,000</span><span class="r tnum">≈$720M</span></li>
+        <li class="st" hidden data-say="Sanity check. Add readiness work, compliance software, and penetration tests, and the wider SOC 2 ecosystem is likely over 1 billion dollars. The interviewer is grading your structure, not the exact number."><span class="t">Sanity check</span><span class="f">Add readiness work, software, and pen tests: the wider SOC 2 ecosystem likely tops $1B</span><span class="r tnum">✓</span></li>
+      </ol>
+      <div class="row"><button class="btn primary small next" type="button">Reveal step 1 of 6</button><button class="btn small reset" type="button">Start over</button></div>
+    </div>
+    <p class="src">All inputs are interview-style assumptions, not market research.</p>
+  </div>
+
+  <div class="drill">
+    <h3>Market growth: technology risk services</h3>
+    <div class="iv">
+      <p class="who">Interviewer</p>
+      <p data-say>Why is demand for technology risk services growing, and will it keep growing?</p>
+    </div>
+    <div class="move">
+      <span class="lbl">Your move</span>
+      <p data-say>Split growth into more buyers and more spend per buyer, then list drivers and headwinds.</p>
+      <div class="acts"><button class="btn small timer" type="button" data-secs="60">60s timer</button><button class="btn primary small reveal" type="button" aria-controls="a-growth" aria-expanded="false">Show a strong answer</button></div>
+    </div>
+    <div class="ans" id="a-growth" hidden>
+      <p class="who">Strong answer</p>
+      <div class="eq">Market growth = more buyers × more spend per buyer</div>
+      <div class="drivers">
+        <div data-say><b>Regulation</b><p>SEC rules from 2023 require public companies to disclose material cyber incidents. The EU's DORA has applied to financial firms since January 2025. State privacy laws keep spreading.</p></div>
+        <div data-say><b>Threats</b><p>Ransomware and AI-assisted phishing raise the cost of getting it wrong.</p></div>
+        <div data-say><b>Technology change</b><p>Cloud, AI adoption, and more vendors mean more systems and access to control.</p></div>
+        <div data-say><b>Board accountability</b><p>Boards and regulators want evidence that controls work, not just policies.</p></div>
+      </div>
+      <h3>Headwinds</h3>
+      <ul data-say>
+        <li>Budget pressure in a downturn.</li>
+        <li>Automation and AI tools lower the cost of each test, which pushes prices down.</li>
+        <li>Large companies building in-house risk teams.</li>
+      </ul>
+      <h3>Quick math</h3>
+      <p data-say>If a market doubles in 5 years, what's the annual growth rate? Use the rule of 72: 72 divided by 5 is about 14 percent. The exact answer is about 14.9 percent.</p>
+      <div class="script"><p data-say>"I expect continued growth, because regulation and threats keep expanding the number of buyers and what each one needs. The main risk is pricing pressure from automation, so the winners will sell judgment and remediation, not just testing."</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- 11 TEST -->
+<section class="step test" id="test">
+  <div class="sh"><span class="idx">11</span><h2>Practice test</h2><button class="btn small listen" type="button">Listen</button></div>
+  <p class="sub" data-say>Twelve multiple-choice questions on concepts and the Harbor case. Pick an answer to see the explanation.</p>
+  <div class="scorebar"><span class="score" id="score">0 / 0<small>answered 0 of 12</small></span><button class="btn small" type="button" id="resetTest">Reset test</button></div>
+  <div id="testq"></div>
+  <div class="done" id="done" hidden></div>
+</section>
+
+</div>
+</main>
+
+<footer>
+  <div class="wrap">
+    <p>Case figures, exhibits, and the bank are invented for practice. Descriptions of technology risk work are general and based on EY's public <a href="https://ey.com/en_vn/technology-risk" target="_blank" rel="noopener">Technology Risk</a> and <a href="https://www.ey.com/en_ie/services/consulting/third-party-risk-management-consulting-services" target="_blank" rel="noopener">third-party risk</a> pages.</p>
+    <p>Night-before tip: run steps 04, 05, 09 out loud once more in the morning, then take the test.</p>
+  </div>
+</footer>
+<div id="tip" hidden role="tooltip"></div>
+
+<script>
+(function(){
+  "use strict";
+  const $=(s,r=document)=>r.querySelector(s), $$=(s,r=document)=>[...r.querySelectorAll(s)];
+  const NS="http://www.w3.org/2000/svg";
+  const svgEl=(t,a={})=>{const e=document.createElementNS(NS,t);for(const k in a)e.setAttribute(k,a[k]);return e;};
+  const LET="ABCD";
+
+  /* ---------- tooltip ---------- */
+  const tip=$("#tip");
+  function showTip(el,x,y){tip.textContent=el.getAttribute("data-tip");tip.hidden=false;
+    const w=tip.offsetWidth,h=tip.offsetHeight;let L=x+12,T=y-h-10;
+    if(L+w>innerWidth-8)L=x-w-12; if(T<8)T=y+14; tip.style.left=Math.max(8,L)+"px";tip.style.top=T+"px";}
+  document.addEventListener("pointermove",e=>{const t=e.target.closest&&e.target.closest("[data-tip]");if(t)showTip(t,e.clientX,e.clientY);else tip.hidden=true;});
+  document.addEventListener("focusin",e=>{const t=e.target.closest&&e.target.closest("[data-tip]");if(t){const r=t.getBoundingClientRect();showTip(t,r.left+r.width/2,r.top);}});
+  document.addEventListener("focusout",()=>{tip.hidden=true;});
+  addEventListener("scroll",()=>{tip.hidden=true;},{passive:true});
+
+  /* ---------- reveal toggles ---------- */
+  $$(".reveal").forEach(b=>{const t=document.getElementById(b.getAttribute("aria-controls"));const show=b.textContent;
+    const hide=show.startsWith("Show as")?"Hide table":"Hide";
+    b.addEventListener("click",()=>{const open=t.hidden;t.hidden=!open;b.setAttribute("aria-expanded",String(open));b.textContent=open?hide:show;});});
+
+  /* ---------- timers ---------- */
+  let actx=null;
+  function beep(){try{actx=actx||new (window.AudioContext||window.webkitAudioContext)();const o=actx.createOscillator(),g=actx.createGain();o.frequency.value=880;g.gain.setValueAtTime(.0001,actx.currentTime);g.gain.exponentialRampToValueAtTime(.2,actx.currentTime+.02);g.gain.exponentialRampToValueAtTime(.0001,actx.currentTime+.5);o.connect(g).connect(actx.destination);o.start();o.stop(actx.currentTime+.55);}catch(e){}}
+  $$(".timer").forEach(b=>{const secs=+b.dataset.secs,label=b.textContent;let id=null,left=0;
+    const fmt=s=>Math.floor(s/60)+":"+String(s%60).padStart(2,"0");
+    b.addEventListener("click",()=>{
+      if(id){clearInterval(id);id=null;b.textContent=label;b.setAttribute("aria-pressed","false");return;}
+      try{actx=actx||new (window.AudioContext||window.webkitAudioContext)();}catch(e){}
+      left=secs;b.textContent=fmt(left)+" · stop";b.setAttribute("aria-pressed","true");
+      id=setInterval(()=>{left--;if(left<=0){clearInterval(id);id=null;b.textContent="Time. Answer now";b.setAttribute("aria-pressed","false");beep();setTimeout(()=>{if(!id)b.textContent=label;},4000);return;}b.textContent=fmt(left)+" · stop";},1000);
+    });});
+
+  /* ---------- steppers ---------- */
+  $$(".stepper").forEach(s=>{const steps=$$(".st",s),next=$(".next",s),reset=$(".reset",s);let i=0;
+    const upd=()=>{next.hidden=i>=steps.length;next.textContent="Reveal step "+(i+1)+" of "+steps.length;};
+    next.addEventListener("click",()=>{if(i<steps.length){steps[i].hidden=false;i++;upd();}});
+    reset.addEventListener("click",()=>{steps.forEach(x=>x.hidden=true);i=0;upd();});upd();});
+
+  /* ---------- Exhibit 1: small multiples ---------- */
+  const Q=["Q4 '25","Q1 '26","Q2 '26","Q3 '26"];
+  const INC=[
+    {k:"Phishing emails reported",v:[120,118,125,122]},
+    {k:"Malware blocked",v:[40,38,41,39]},
+    {k:"Lost or stolen devices",v:[5,4,6,5]},
+    {k:"Unauthorized access incidents",v:[6,9,13,18]},
+    {k:"Vendor-related incidents",v:[2,4,7,11]},
+    {k:"Outages after system changes",v:[3,3,5,8]},
+  ];
+  function niceMax(m){const steps=[5,10,15,20,25,30,40,50,60,80,100,120,150,200];for(const s of steps)if(s>=m)return s;return Math.ceil(m/50)*50;}
+  function roundTop(x,y,w,h,r){r=Math.min(r,h,w/2);return `M${x},${y+h}V${y+r}Q${x},${y} ${x+r},${y}H${x+w-r}Q${x+w},${y} ${x+w},${y+r}V${y+h}Z`;}
+  const mult=$("#mult");
+  INC.forEach(s=>{
+    const card=document.createElement("div");card.className="mini";
+    card.innerHTML=`<div class="nm">${s.k}</div><div class="ch">${s.v[0]} → ${s.v[3]}</div>`;
+    const W=200,H=104,top=18,bot=20,pl=4,pr=4,ph=H-top-bot,band=(W-pl-pr)/4,bw=22,max=niceMax(Math.max(...s.v)*1.12);
+    const svg=svgEl("svg",{viewBox:`0 0 ${W} ${H}`,role:"img","aria-label":`${s.k}: ${s.v.map((v,i)=>Q[i]+" "+v).join(", ")}`});
+    s.v.forEach((v,i)=>{const cx=pl+band*i+band/2,h=Math.max(1,v/max*ph),x=cx-bw/2,y=top+ph-h;
+      svg.appendChild(svgEl("path",{d:roundTop(x,y,bw,h,4),fill:"var(--s1)"}));
+      if(i===0||i===3){const t=svgEl("text",{x:cx,y:y-5,"text-anchor":"middle","font-size":"11","font-weight":"600",fill:"var(--fg-2)"});t.textContent=v;svg.appendChild(t);}
+      const q=svgEl("text",{x:cx,y:H-5,"text-anchor":"middle","font-size":"9.5",fill:"var(--muted)"});q.textContent=Q[i];svg.appendChild(q);
+      svg.appendChild(svgEl("rect",{x:pl+band*i,y:0,width:band,height:H,fill:"transparent","data-tip":`${s.k} · ${Q[i]}: ${v}`}));
+    });
+    svg.insertBefore(svgEl("line",{x1:0,x2:W,y1:top+ph+.5,y2:top+ph+.5,stroke:"var(--axis)","stroke-width":"1"}),svg.firstChild);
+    card.appendChild(svg);mult.appendChild(card);
+  });
+  $("#t-ex1").innerHTML=`<table><thead><tr><th>Incident type</th>${Q.map(q=>`<th class="n">${q}</th>`).join("")}</tr></thead><tbody>${INC.map(s=>`<tr><td>${s.k}</td>${s.v.map(v=>`<td class="n">${v}</td>`).join("")}</tr>`).join("")}</tbody></table>`;
+
+  /* ---------- Exhibit 2: ITGC exception rates ---------- */
+  const ITGC=[
+    {d:"Access to programs & data",t:"Removing access for departed employees",s:60,e:14},
+    {d:"Program changes",t:"Approval before production changes",s:40,e:9},
+    {d:"Computer operations",t:"Backup job monitoring",s:25,e:1},
+    {d:"Program development",t:"Testing and sign-off for new systems",s:10,e:0},
+  ];
+  const TOL=5,MAX=30,itgc=$("#itgc");
+  ITGC.forEach(r=>{const pct=r.e/r.s*100,bad=pct>TOL;
+    const row=document.createElement("div");row.className="hrow";
+    row.innerHTML=`<div class="hlab"><b>${r.d}</b><span>${r.t}</span><span class="status ${bad?"bad":"ok"}">${bad?"▲ Above tolerance":"✓ Within tolerance"}</span></div>
+      <div class="track" tabindex="0" data-tip="${r.d}: ${r.e} of ${r.s} sampled items failed (${pct.toFixed(1)}%)">
+        <div class="bar" style="width:${Math.max(.4,pct/MAX*100)}%"></div>
+        <span class="bval" style="left:${pct/MAX*100}%">${Math.round(pct)}% · ${r.e} of ${r.s}</span>
+        <div class="tol" style="left:${TOL/MAX*100}%"></div>
+      </div>`;
+    itgc.appendChild(row);});
+  const ax=document.createElement("div");ax.className="axis";
+  ax.innerHTML=`<div></div><div class="ticks">${[0,10,20,30].map(v=>`<span style="left:${v/MAX*100}%">${v}%</span>`).join("")}</div>`;
+  itgc.appendChild(ax);
+  const tl=document.createElement("p");tl.className="tolnote";tl.innerHTML="Vertical line = 5% tolerance";itgc.appendChild(tl);
+
+  /* ---------- Risk sizing chart ---------- */
+  const roi=$("#roi"),RM=10;
+  [{n:"Do nothing",d:"Expected loss at 10% odds",seg:[[8.1,"",`Expected breach loss: $8.1M`]],tot:"$8.1M"},
+   {n:"Invest in the program",d:"Expected loss at 4% odds + cost",seg:[[3.24,"",`Expected breach loss: $3.24M`],[3.0,"b2",`Control program cost: $3.0M`]],tot:"$6.24M"}]
+  .forEach(r=>{const row=document.createElement("div");row.className="hrow";let x=0,bars="";
+    r.seg.forEach(([v,c,t],i)=>{const left=x/RM*100,w=v/RM*100;
+      bars+=`<div class="bar ${c}" tabindex="0" data-tip="${t}" style="left:calc(${left}% + ${i?2:0}px);width:calc(${w}% - ${i?2:0}px);border-radius:${i===r.seg.length-1?"0 4px 4px 0":"0"}"></div>`;x+=v;});
+    row.innerHTML=`<div class="hlab"><b>${r.n}</b><span>${r.d}</span></div><div class="track">${bars}<span class="bval" style="left:${x/RM*100}%">${r.tot}</span></div>`;
+    roi.appendChild(row);});
+  const ax2=document.createElement("div");ax2.className="axis";
+  ax2.innerHTML=`<div></div><div class="ticks">${[0,2,4,6,8,10].map(v=>`<span style="left:${v/RM*100}%">$${v}M</span>`).join("")}</div>`;
+  roi.appendChild(ax2);
+
+  /* ---------- Heat map ---------- */
+  const RISKS=[
+    {id:"R1",n:"Fintech partner access and oversight",l:4,i:5},
+    {id:"R2",n:"Departed or excess user access",l:5,i:4},
+    {id:"R3",n:"Unapproved production changes",l:4,i:4},
+    {id:"R4",n:"Cloud misconfiguration at migration",l:3,i:5},
+    {id:"R5",n:"Phishing (controls working)",l:4,i:2},
+    {id:"R6",n:"Backup monitoring gaps",l:2,i:3},
+  ];
+  const band=s=>s>=20?5:s>=15?4:s>=9?3:s>=5?2:1;
+  const C=54,ox=58,oy=8,G=C*5,HW=ox+G+8,HH=oy+G+52;
+  const hs=svgEl("svg",{viewBox:`0 0 ${HW} ${HH}`,role:"img","aria-label":"Risk heat map. "+RISKS.map(r=>`${r.id} ${r.n}: likelihood ${r.l}, impact ${r.i}`).join(". ")});
+  for(let L=1;L<=5;L++)for(let I=1;I<=5;I++){
+    hs.appendChild(svgEl("rect",{x:ox+(L-1)*C+1,y:oy+(5-I)*C+1,width:C-2,height:C-2,rx:3,fill:`var(--h${band(L*I)})`}));}
+  const lx=["Rare","","Possible","","Likely"],ly=["Minor","","Moderate","","Severe"];
+  for(let k=1;k<=5;k++){
+    const t=svgEl("text",{x:ox+(k-.5)*C,y:oy+G+15,"text-anchor":"middle","font-size":"11",fill:"var(--fg-2)"});t.textContent=k;hs.appendChild(t);
+    if(lx[k-1]){const t2=svgEl("text",{x:ox+(k-.5)*C,y:oy+G+28,"text-anchor":"middle","font-size":"9.5",fill:"var(--muted)"});t2.textContent=lx[k-1];hs.appendChild(t2);}
+    const u=svgEl("text",{x:ox-8,y:oy+(5-k+.5)*C+4,"text-anchor":"end","font-size":"11",fill:"var(--fg-2)"});u.textContent=k;hs.appendChild(u);
+    if(ly[k-1]){const u2=svgEl("text",{x:ox-20,y:oy+(5-k+.5)*C+4,"text-anchor":"end","font-size":"9.5",fill:"var(--muted)"});u2.textContent=ly[k-1];hs.appendChild(u2);}
+  }
+  const xt=svgEl("text",{x:ox+G/2,y:oy+G+46,"text-anchor":"middle","font-size":"11","font-weight":"600",fill:"var(--fg)"});xt.textContent="Likelihood →";hs.appendChild(xt);
+  const yt=svgEl("text",{x:12,y:oy+G/2,"text-anchor":"middle","font-size":"11","font-weight":"600",fill:"var(--fg)",transform:`rotate(-90 12 ${oy+G/2})`});yt.textContent="Impact →";hs.appendChild(yt);
+  RISKS.forEach(r=>{const cx=ox+(r.l-.5)*C,cy=oy+(5-r.i+.5)*C;const g=svgEl("g",{tabindex:"0","data-tip":`${r.id} · ${r.n}: likelihood ${r.l}, impact ${r.i}, score ${r.l*r.i}`});
+    g.appendChild(svgEl("circle",{cx,cy,r:16,fill:"var(--surface)"}));
+    g.appendChild(svgEl("circle",{cx,cy,r:14,fill:"var(--dot)"}));
+    const t=svgEl("text",{x:cx,y:cy+4,"text-anchor":"middle","font-size":"11","font-weight":"600",fill:"var(--dot-ink)"});t.textContent=r.id;g.appendChild(t);
+    hs.appendChild(g);});
+  $("#heatmap").appendChild(hs);
+  $("#reglist").innerHTML=[...RISKS].sort((a,b)=>b.l*b.i-a.l*a.i).map(r=>`<li><span class="id">${r.id}</span><span>${r.n}</span><span class="sc">${r.l}×${r.i} = ${r.l*r.i}</span></li>`).join("");
+
+  /* ---------- Practice test ---------- */
+  const TEST=[
+    {q:"Which of these is NOT one of the four ITGC domains?",o:["Access to programs and data","Program changes","Marketing analytics","Computer operations"],a:2,w:"The four domains are access to programs and data, program changes, program development, and computer operations."},
+    {q:"Technology risks are usually prioritized by combining which two factors?",o:["Likelihood and impact","Cost and timeline","Users and devices","Revenue and headcount"],a:0,w:"Risk equals likelihood times impact. Plot both on a heat map and work from the top-right corner."},
+    {q:"A weekly review of login logs that spots unauthorized access after it happens is a…",o:["Preventive control","Detective control","Corrective control","Compensating budget"],a:1,w:"It catches the problem after the fact, so it's detective. Multi-factor login, which stops the problem up front, would be preventive."},
+    {q:"Buying cyber insurance is an example of which risk response?",o:["Avoid","Accept","Transfer","Mitigate"],a:2,w:"Insurance shifts the financial impact to someone else, so it's a transfer. The four responses are avoid, mitigate, transfer, and accept."},
+    {q:"NIST CSF 2.0 added which function to the original five?",o:["Defend","Comply","Audit","Govern"],a:3,w:"Version 2.0, released in 2024, added Govern to Identify, Protect, Detect, Respond, and Recover."},
+    {q:"A software company's enterprise customers want proof that its security controls protect their data. Which report fits best?",o:["SOC 2 report","SOC 1 report","Form 10-K","A marketing whitepaper"],a:0,w:"SOC 2 covers security, availability, processing integrity, confidentiality, and privacy. SOC 1 is about controls relevant to a customer's financial reporting."},
+    {q:"Residual risk is…",o:["The risk before any controls","The risk transferred to a vendor","The risk that remains after controls","A risk that has already happened"],a:2,w:"Inherent risk is before controls. Residual risk is what's left after controls are applied."},
+    {q:"In the Harbor case, which data point best shows that access controls are failing?",o:["About 120 phishing reports a quarter","Zero exceptions in program development","Malware blocks holding steady","14 of 60 departed employees still had access"],a:3,w:"Departed employees keeping access is a direct control failure, and it lines up with unauthorized access incidents tripling."},
+    {q:"A breach would cost $50 million and has a 6% chance per year. What is the expected annual loss?",o:["$300,000","$3 million","$8.3 million","$30 million"],a:1,w:"$50 million × 6% = $3 million a year. That's the single loss expectancy times the annual rate of occurrence."},
+    {q:"A new fintech partner needs access to the bank's systems. Which principle should guide it?",o:["Least privilege, time-limited access","One shared admin login, for speed","Permanent full access to avoid delays","No logging, to protect the partner's privacy"],a:0,w:"Give vendors only the access they need, only for as long as they need it, with multi-factor login and monitoring."},
+    {q:"In the Three Lines model, internal audit is…",o:["The first line","The second line","The third line","Outside the model"],a:2,w:"Management is the first line, risk and compliance the second, and internal audit, which gives independent assurance, is the third."},
+    {q:"Which is the strongest opening line for your final recommendation?",o:["Let me walk you through everything I looked at.","There are a lot of risks to think about.","It depends on the bank's priorities.","Harbor should proceed, but gate the cloud cutover on fixing three control gaps in 90 days."],a:3,w:"Lead with the answer, then support it. Consultants call this answer-first, or the pyramid principle."},
+  ];
+  const testq=$("#testq");
+  TEST.forEach((t,n)=>{const d=document.createElement("div");d.className="mc";d.dataset.answer=t.a;d.dataset.group="test";
+    d.innerHTML=`<div class="mc-head"><p class="stem" data-say="Question ${n+1}. ${t.q.replace(/"/g,"&quot;")}"><span class="qn">Q${n+1}</span>${t.q}</p><button class="btn small qlisten" type="button" aria-label="Listen to question ${n+1}">Listen</button></div>
+      <div class="opts">${t.o.map(o=>`<button class="opt" type="button" data-say="${o.replace(/"/g,"&quot;")}">${o}</button>`).join("")}</div>
+      <div class="why" hidden><p data-say="${t.w.replace(/"/g,"&quot;")}">${t.w}</p></div>`;
+    testq.appendChild(d);});
+
+  /* ---------- multiple choice engine ---------- */
+  function setupMC(mc){const opts=$$(".opt",mc);
+    opts.forEach((o,i)=>{if(!o.querySelector(".L")){const x=document.createElement("span");x.className="x";while(o.firstChild)x.appendChild(o.firstChild);
+        const L=document.createElement("span");L.className="L";L.textContent=LET[i];o.append(L,x);
+        o.dataset.say=LET[i]+". "+(o.dataset.say||x.textContent);}
+      o.addEventListener("click",()=>answer(mc,i));});}
+  function answer(mc,i){if(mc.dataset.done)return;mc.dataset.done="1";const a=+mc.dataset.answer,opts=$$(".opt",mc);
+    opts.forEach((o,k)=>{o.disabled=true;if(k===a){o.classList.add("right");o.insertAdjacentHTML("beforeend",`<span class="tag">✓ ${k===i?"Correct":"Answer"}</span>`);}
+      else if(k===i){o.classList.add("wrong");o.insertAdjacentHTML("beforeend",`<span class="tag">✕ Your pick</span>`);}});
+    mc.dataset.correct=String(i===a);$(".why",mc).hidden=false;if(mc.dataset.group==="test")score();}
+  function resetMC(mc){delete mc.dataset.done;delete mc.dataset.correct;$$(".opt",mc).forEach(o=>{o.disabled=false;o.classList.remove("right","wrong");const t=$(".tag",o);if(t)t.remove();});$(".why",mc).hidden=true;}
+  $$(".mc").forEach(setupMC);
+  function score(){const qs=$$('.mc[data-group="test"]'),done=qs.filter(q=>q.dataset.done),right=done.filter(q=>q.dataset.correct==="true").length;
+    $("#score").innerHTML=`${right} / ${done.length}<small>answered ${done.length} of ${qs.length}</small>`;
+    const box=$("#done");if(done.length===qs.length){box.hidden=false;
+      box.innerHTML=`<b>${right} of ${qs.length}.</b> `+(right>=11?"You're ready. Run the recommendation in step 09 out loud once more and get some sleep.":right>=8?"Solid. Re-read the explanations you missed, then run steps 04 and 09 out loud.":"Go back to the primer in step 01, then retake the test. The terms will stick on the second pass.");}
+    else box.hidden=true;}
+  $("#resetTest").addEventListener("click",()=>{$$('.mc[data-group="test"]').forEach(resetMC);score();$("#test").scrollIntoView();});
+  score();
+
+  /* ---------- read aloud ---------- */
+  const synth=window.speechSynthesis;
+  const rateSel=$("#rate");
+  try{const r=localStorage.getItem("harbor-rate");if(r)rateSel.value=r;}catch(e){}
+  rateSel.addEventListener("change",()=>{try{localStorage.setItem("harbor-rate",rateSel.value);}catch(e){}});
+  let speakingBtn=null,voice=null;
+  function pickVoice(){if(!synth)return null;const vs=synth.getVoices().filter(v=>/^en[-_]US/i.test(v.lang));
+    return vs.find(v=>/natural|neural/i.test(v.name))||vs.find(v=>/samantha|google us english|aria|jenny/i.test(v.name))||vs[0]||null;}
+  if(synth&&synth.onvoiceschanged!==undefined)synth.onvoiceschanged=()=>{voice=pickVoice();};
+  function textOf(el){return(el.getAttribute("data-say")||el.innerText||"").replace(/\s+/g," ").trim();}
+  function visible(el){return!!(el.offsetWidth||el.offsetHeight||el.getClientRects().length);}
+  function stop(){if(synth)synth.cancel();if(speakingBtn){speakingBtn.textContent=speakingBtn.dataset.label;speakingBtn.setAttribute("aria-pressed","false");speakingBtn=null;}}
+  function speak(btn,els){
+    if(!synth)return;
+    if(speakingBtn===btn){stop();return;}
+    stop();voice=voice||pickVoice();
+    const chunks=[];els.filter(visible).forEach(el=>{textOf(el).split(/(?<=[.?!])\s+(?=[A-Z0-9"“])/).forEach(c=>{if(c)chunks.push(c);});});
+    if(!chunks.length)return;
+    speakingBtn=btn;btn.dataset.label=btn.dataset.label||btn.textContent;btn.textContent="Stop";btn.setAttribute("aria-pressed","true");
+    chunks.forEach((c,i)=>{const u=new SpeechSynthesisUtterance(c);u.rate=+rateSel.value;if(voice)u.voice=voice;u.lang="en-US";
+      if(i===chunks.length-1)u.onend=()=>{if(speakingBtn===btn)stop();};synth.speak(u);});
+  }
+  if(!synth){$$(".listen,.qlisten").forEach(b=>b.hidden=true);$(".speed").hidden=true;}
+  else{
+    $$(".listen").forEach(b=>{b.dataset.label=b.textContent;b.addEventListener("click",()=>{const sec=b.closest("section");speak(b,$$("[data-say]",sec).filter(el=>!el.parentElement.closest("[data-say]")));});});
+    document.addEventListener("click",e=>{const b=e.target.closest(".qlisten");if(!b)return;const mc=b.closest(".mc");speak(b,$$("[data-say]",mc).filter(el=>!el.parentElement.closest("[data-say]")));});
+  }
+
+  /* ---------- rail highlight ---------- */
+  const chips=$$("#chips a"),map=new Map(chips.map(a=>[a.getAttribute("href").slice(1),a]));
+  if("IntersectionObserver" in window){
+    const io=new IntersectionObserver(es=>{es.forEach(en=>{if(en.isIntersecting){chips.forEach(c=>c.classList.remove("on"));const a=map.get(en.target.id);if(a){a.classList.add("on");const p=a.parentElement;p.scrollTo({left:a.offsetLeft-p.clientWidth/2+a.offsetWidth/2,behavior:"smooth"});}}});},{rootMargin:"-45% 0px -50% 0px"});
+    $$("section.step").forEach(s=>io.observe(s));
+  }
+})();
+</script>
+
+</body></html>
