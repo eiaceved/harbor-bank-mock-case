@@ -74,7 +74,7 @@ function fetchLocal(t,cb){
  var u=localURL(t);
  if(localCache[u]!==undefined){cb(localCache[u]);return}
  fetch(u).then(function(r){
-  if(!r.ok){localCache[u]=null;cb(null);return}
+  if(!r.ok){localCache[u]=null;console.log('TTSFALLBACK '+u+' :: '+JSON.stringify(t.slice(0,150)));cb(null);return}
   return r.blob().then(function(b){localCache[u]=b;cb(b)});
  }).catch(function(){localCache[u]=null;cb(null)});
 }
