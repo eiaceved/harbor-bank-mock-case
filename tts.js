@@ -145,23 +145,10 @@ function playChunks(item,done){
  var chunks=item.chunks||[item.t];
  function step(){
   if(stopped||si>=chunks.length){done();return}
-  var t=chunks[si];
-  if(isFree()){
-   speakFree(t,item.el,function(){
-    if(stopped)return;
-    si++;step();
-   });
-  }else{
-   fetchAudio(t,function(err,blob){
-    if(err){status(err);return}
-    if(stopped)return;
-    playBlob(blob,function(){
-     if(item.el)item.el.classList.remove('tts-active');
-     si++;step();
-    });
-    if(chunks[si+1])fetchAudio(chunks[si+1],function(){});
-   });
-  }
+  speakFree(chunks[si],item.el,function(){
+   if(stopped)return;
+   si++;step();
+  });
  }
  step();
 }
@@ -207,46 +194,13 @@ function toggle(){
  queue=b.q;qi=0;p.textContent='❚❚';
  playNext();
 }
-function askKey(){
- if(document.getElementById('tts-keybox'))return;
- var k=document.createElement('div');k.className='tts-keybox';k.id='tts-keybox';
- k.innerHTML='<p>Paste your ElevenLabs API key for the premium voices on text with no saved recording. It stays in this browser.</p>'+
- '<input id="tts-key-input" type="password" placeholder="sk_...">'+
- '<button id="tts-key-save">Save key</button>';
- document.body.appendChild(k);
- document.getElementById('tts-key-save').addEventListener('click',function(){
-  var v=document.getElementById('tts-key-input').value.trim();
-  if(v){try{localStorage.setItem(LS_KEY,v)}catch(e){}
-   k.remove();loadVoices();}
- });
-}
 function loadVoices(){
  var sel=document.getElementById('tts-voice');
  freeVoices=[];
  try{freeVoices=speechSynthesis.getVoices().filter(function(v){return /^en/i.test(v.lang)})||[]}catch(e){}
- var saved=(function(){try{return localStorage.getItem(LS_VOICE)}catch(e){return null}})();
- var html='<option value="'+FREE+'">Saved voices (free)</option>';
- if(key()){
-  fetch(API+'/voices',{headers:{'xi-api-key':key()}}).then(function(r){return r.json()}).then(function(d){
-   voices=(d.voices||[]);
-   if(voices.length){
-    html+=voices.map(function(v){return '<option value="'+v.voice_id+'">'+v.name+' (live premium)</option>'}).join('');
-   }
-   sel.innerHTML=html;
-   var pick;
-   if(saved===FREE){pick=FREE}
-   else{
-    pick=voices.filter(function(v){return v.voice_id===saved})[0];
-    if(!pick)pick=voices.filter(function(v){return v.name==='Sarah'})[0];
-   }
-   if(pick&&pick.voice_id)sel.value=pick.voice_id;else sel.value=FREE;
-   try{localStorage.setItem(LS_VOICE,sel.value)}catch(e){}
-  }).catch(function(){sel.innerHTML=html;sel.value=FREE;});
- }else{
-  sel.innerHTML=html;
-  sel.value=FREE;
-  try{localStorage.setItem(LS_VOICE,FREE)}catch(e){}
- }
+ sel.innerHTML='<option value="'+FREE+'">Saved voices (free)</option>';
+ sel.value=FREE;
+ try{localStorage.setItem(LS_VOICE,FREE)}catch(e){}
 }
 try{speechSynthesis.onvoiceschanged=function(){loadVoices()}}catch(e){}
 bar();loadVoices();
